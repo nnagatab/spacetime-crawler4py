@@ -27,7 +27,8 @@ def scraper(url, resp):
 
 def extract_next_links(url, resp):      # specifications number 3.2, 3.3
     next_links = set()
-    valid = [200, 201, 203]     # list of valid html status codes
+    base_url = urlparse(url)
+    valid = [200, 201, 203]     # list of valid html status codes https://www.w3.org/Protocols/HTTP/HTRESP.html
     if resp.status in valid:
         if url in uniqueDomains:
             return list()
@@ -49,12 +50,27 @@ def extract_next_links(url, resp):      # specifications number 3.2, 3.3
                 link = link.lower()     # making link lowercase in order to defragment
 
             defragmented_url = urldefrag(link)[0]
-            if defragmented_url not in uniqueDomains:   # makes sure only unique domains are being crawled
-                uniqueDomains.add(defragmented_url)
-                next_links.add(defragmented_url)
+            fixed_link = fix_url(defragmented_url, base_url)    # need to fix relative links
+            if fixed_link not in uniqueDomains:   # makes sure only unique domains are being crawled
+                uniqueDomains.add(fixed_link)
+                next_links.add(fixed_link)
             else:
                 continue
     return list(next_links)     # returns list of set of links (makes sure links are unique)
+
+
+def fix_url(url,base):
+    # need this function in order to deal with relative urls talked about on piazza
+
+    if url.startswith("//"):    # if starts with '//' just add 'https://'
+        returnlink = urljoin("https://", url)
+        return returnlink
+
+    elif url.startswith("/"):   # if starts with '/' need to add 'https://' and base url first
+        returnlink = urljoin("https://" + base.netloc, url)
+        return returnlink
+
+    return url
 
 
 def is_valid(url):
@@ -82,6 +98,21 @@ def add_domain(extractedLinks):
 
 
 if __name__ == "__main__":
+    # testing and understanding function calls
+
     url = "http://www.ics.uci.edu#bbb"
+    x = urlparse(url)
+    print(url)
+    print(x)
     pure, frag = urldefrag(url)
     print(pure)
+    print(frag)
+    print("//")
+    base = urlparse("https://swiki.ics.uci.edu")
+    url2 = "//uci.edu/coronavirus/"
+    url3 = "/doku.php/start"
+    pure = urldefrag(url2)[0]
+    pure2 = urldefrag(url3)[0]
+    print(fix_url(pure, base))
+    print(fix_url(pure2, base))
+
