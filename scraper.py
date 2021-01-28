@@ -99,7 +99,7 @@ def update_files(url):
 
         with open("longest_page.txt", "a+") as longest_file:
             longest_file.write(str(longest) + "\n")
-            longest_file.write("-------------------------------")
+            longest_file.write("-------------------------------" + "\n")
             for items in sorted(pageCount.items(), key=lambda x: x[1], reverse=True):  # sorts by longest page
                 longest_file.write(str(items[0]) + " -> " + str(items[1]) + "\n")
 
@@ -108,14 +108,14 @@ def update_files(url):
                 word_file.write(str(item[0]) + " -> " + str(item[1]) + "\n")
 
     except:
-        print("Ran into error")
+        print("Ran into error updating files")
 
 
 def tokenize(url, soup):    # changed my tokenizer to take soup instead of file name
     try:
-        souplower = soup.lower()
+        soup = soup.get_text.lower()
         pattern = r"\b[a-zA-Z0-9]+\b"  # taken from stack overflow to only find alphanumeric characters
-        tokenList = re.findall(pattern, souplower)  # list that will be returned, I think this is slower
+        tokenList = re.findall(pattern, soup)  # list that will be returned, I think this is slower
         wordCount = 0   # wordcount for the page so I know how many words were on the page (excluding stopwords)
         for token in tokenList:
             if token not in stopwords:
