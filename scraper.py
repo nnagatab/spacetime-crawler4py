@@ -1,13 +1,9 @@
 import re
-import sys
-import os
 
 from urllib.parse import urlparse, urljoin, urldefrag
 from urllib import robotparser  # using robotparser to read robot.txt
-from utils import get_urlhash
 from io import *  # using io for opening with encoding
 from bs4 import BeautifulSoup  # using bs4 to go thru html
-from lxml import etree, html  # using lxml to parse thru html/xml data
 
 # stopwords to ignore
 stopwords = {"about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "aren't", "as",
