@@ -54,7 +54,7 @@ wordFrequency = dict()  # Store Common words (Question #3)
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     if resp.raw_response is not None:
-        soup = BeautifulSoup(resp.raw_response.content, "lxml")
+        soup = BeautifulSoup(resp.raw_response.text, "html.parser")
         tokenize(url, soup)
     print()
     print("***********************************")
@@ -109,16 +109,17 @@ def update_files(url):
 
     except Exception as e:
         print("Ran into error updating files\n")
-        print(e + "\n")
+        print(str(e) + "\n")
 
 
 def tokenize(url, soup):    # changed my tokenizer to take soup instead of file name
     try:
-        soup = soup.get_text.lower()
+        soup = soup.get_text
         pattern = r"\b[a-zA-Z0-9]+\b"  # taken from stack overflow to only find alphanumeric characters
         tokenList = re.findall(pattern, soup)  # list that will be returned, I think this is slower
         wordCount = 0   # wordcount for the page so I know how many words were on the page (excluding stopwords)
         for token in tokenList:
+            token = token.lower()
             if token not in stopwords:
                 if len(token) <= 1:  # ignore single letters
                     continue
@@ -133,7 +134,7 @@ def tokenize(url, soup):    # changed my tokenizer to take soup instead of file 
             longest["longest_page"] = url
     except Exception as error:
         print("ran into problem tokenizing\n")
-        print(error + "\n")
+        print(str(error) + "\n")
 
 
 def extract_next_links(url, resp):  # specifications number 3.2, 3.3
