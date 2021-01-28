@@ -107,8 +107,9 @@ def update_files(url):
             for item in sorted(wordFrequency.items(), key=lambda x: x[1], reverse=True):
                 word_file.write(str(item[0]) + " -> " + str(item[1]) + "\n")
 
-    except:
-        print("Ran into error updating files")
+    except Exception as e:
+        print("Ran into error updating files\n")
+        print(e + "\n")
 
 
 def tokenize(url, soup):    # changed my tokenizer to take soup instead of file name
@@ -131,7 +132,8 @@ def tokenize(url, soup):    # changed my tokenizer to take soup instead of file 
             longest["longest_count"] = wordCount
             longest["longest_page"] = url
     except Exception as error:
-        print("ran into problem tokenizing")
+        print("ran into problem tokenizing\n")
+        print(error + "\n")
 
 
 def extract_next_links(url, resp):  # specifications number 3.2, 3.3
