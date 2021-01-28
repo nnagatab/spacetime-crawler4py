@@ -64,7 +64,7 @@ def scraper(url, resp):
     print("***********************************")
 
     found_links = is_subdomain(url, links)
-    update_files()
+    update_files(url)
     return list(found_links)
 
 
@@ -88,7 +88,7 @@ def is_subdomain(url, links):
     return found_links
 
 
-def update_files():
+def update_files(url):
     try:
         with open("all_links.txt", "a+") as link_file:  # using a+ to preserve order traversed (question 1)
             link_file.write(url + "\n")
@@ -107,8 +107,8 @@ def update_files():
             for item in sorted(wordFrequency.items(), key=lambda x: x[1], reverse=True):
                 word_file.write(str(item[0]) + " -> " + str(item[1]) + "\n")
 
-    except Exception as error:
-        print("Ran into exception:" + error)
+    except:
+        print("Ran into error")
 
 
 def tokenize(url, soup):    # changed my tokenizer to take soup instead of file name
@@ -184,8 +184,8 @@ def fix_url(url, base):
 
 
 def is_valid(url):  # implement more trap avoidance
+    parsed = urlparse(url)
     try:
-        parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
         for trap in blacklisted:
