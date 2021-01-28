@@ -60,6 +60,13 @@ def scraper(url, resp):
     if resp.raw_response is not None:
         soup = BeautifulSoup(resp.raw_response.content, "lxml")
         tokenize(url, soup)
+    print()
+    print("***********************************")
+    print("CURRENT URL:", url)
+    print("TOTAL SITES VISTED:", len(uniqueDomains))
+    print("HTML STATUS:", resp.status)
+    print("***********************************")
+
     found_links = is_subdomain(url, links)
     update_files()
     return list(found_links)
@@ -109,23 +116,26 @@ def update_files():
 
 
 def tokenize(url, soup):    # changed my tokenizer to take soup instead of file name
-    souplower = soup.lower()
-    pattern = r"\b[a-zA-Z0-9]+\b"  # taken from stack overflow to only find alphanumeric characters
-    tokenList = re.findall(pattern, souplower)  # list that will be returned, I think this is slower
-    wordCount = 0   # wordcount for the page so I know how many words were on the page (excluding stopwords)
-    for token in tokenList:
-        if token not in stopwords:
-            if len(token) <= 1:  # ignore single letters
-                continue
-            wordCount += 1
-            if token not in wordFrequency:  # just combinded my wordfrequency from partA into my tokenizer
-                wordFrequency[token] = 1
-            else:
-                wordFrequency[token] += 1
-    pageCount[url] = wordCount
-    if longest["longest_count"] < wordCount:
-        longest["longest_count"] = wordCount
-        longest["longest_page"] = url
+    try:
+        souplower = soup.lower()
+        pattern = r"\b[a-zA-Z0-9]+\b"  # taken from stack overflow to only find alphanumeric characters
+        tokenList = re.findall(pattern, souplower)  # list that will be returned, I think this is slower
+        wordCount = 0   # wordcount for the page so I know how many words were on the page (excluding stopwords)
+        for token in tokenList:
+            if token not in stopwords:
+                if len(token) <= 1:  # ignore single letters
+                    continue
+                wordCount += 1
+                if token not in wordFrequency:  # just combinded my wordfrequency from partA into my tokenizer
+                    wordFrequency[token] = 1
+                else:
+                    wordFrequency[token] += 1
+        pageCount[url] = wordCount
+        if longest["longest_count"] < wordCount:
+            longest["longest_count"] = wordCount
+            longest["longest_page"] = url
+    except Exception as error:
+        print("ran into problem tokenizing")
 
 
 def extract_next_links(url, resp):  # specifications number 3.2, 3.3
