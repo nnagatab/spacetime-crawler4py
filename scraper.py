@@ -242,7 +242,7 @@ def is_robot(url, parsed):
 
 if __name__ == "__main__":
     # testing and understanding function calls
-
+    '''
     url = "http://www.ics.uci.edu#bbb"
     x = urlparse(url)
     print(url)
@@ -258,3 +258,4 @@ if __name__ == "__main__":
     pure2 = urldefrag(url3)[0]
     print(fix_url(pure, base))
     print(fix_url(pure2, base))
+    '''
