@@ -9,14 +9,6 @@ from io import *  # using io for opening with encoding
 from bs4 import BeautifulSoup  # using bs4 to go thru html
 from lxml import etree, html  # using lxml to parse thru html/xml data
 
-# storage for deliverable information
-uniqueDomains = set()  # set for unique sites that have been visited
-robots = dict()  # dictionary for unique robots
-longest = {"longest_count": 0, "longest_page": ''}  # store longest page and the count of words (Question #2)
-pageCount = dict()  # store pages and their word counts
-domainCount = dict()  # store domains and subdomain count (question 4)
-wordFrequency = dict()
-
 # stopwords to ignore
 stopwords = {"about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "aren't", "as",
              "at", "be", "because", "been", "before", "being", "below", "between", "both", "but", "by", "can't",
@@ -40,9 +32,17 @@ blacklisted = ["https://wics.ics.uci.edu/events/", "https://www.ics.uci.edu/~epp
 
 blacklisted_parts = ["/calendar", "share=", "format=xml", "/feed", "/feed/",
                      ".zip", ".sql", "action=login", ".ppt", "version="]
-
-
 # parts of url that give little information, includes infinite loops like the calendar link
+
+
+# storage for deliverable information
+uniqueDomains = set()  # set for unique sites that have been visited (Question #1)
+robots = dict()  # dictionary for unique robots
+longest = {"longest_count": 0, "longest_page": ''}  # store longest page and the count of words (Question #2)
+pageCount = dict()  # store pages and their word counts (Question #2)
+domainCount = dict()  # store domains and subdomain count (Question #4)
+wordFrequency = dict()  # Store Common words (Question #3)
+
 
 # to-do:
 # 1. add more trap avoidance and error handling
@@ -56,9 +56,13 @@ blacklisted_parts = ["/calendar", "share=", "format=xml", "/feed", "/feed/",
 
 
 def scraper(url, resp):
-    # global longest,pageCount, domainCount, wordFrequency
     links = extract_next_links(url, resp)
-    return [link for link in links if is_valid(link)]
+    if resp.raw_response is not None:
+        soup = BeautifulSoup(resp.raw_response.content, "lxml")
+        tokenize(url, soup)
+    found_links = is_subdomain(url, links)
+    update_files()
+    return list(found_links)
 
 
 def is_subdomain(url, links):
@@ -69,9 +73,59 @@ def is_subdomain(url, links):
             parsed = urlparse(url)
             subdomain = re.match(r"^(www.)?(?P<subdomain>.*)\.ics\.uci\.edu.*$", parsed.netloc.lower())
             # used https://regex101.com/ to figure out how to match subdomain
-            sub = ""
+            sub = ""  # initialize variable incase there is no subdomain
             if subdomain is not None:
-                pass
+                sub = subdomain.group("subdomain").strip()  # regex to get subdomain
+                if sub is None or sub == "":
+                    continue
+                elif sub in domainCount:
+                    domainCount[sub] += 1
+                elif sub not in domainCount:
+                    domainCount[sub] = 1
+    return found_links
+
+
+def update_files():
+    try:
+        with open("all_links.txt", "a+") as link_file:  # using a+ to preserve order traversed (question 1)
+            link_file.write(url + "\n")
+
+        with open("subdomain_count.txt", "a+") as subdomain_file:  # question 4
+            for items in sorted(domainCount.items(), key=lambda x: x[0]):  # sorts by alphabetical order by key
+                subdomain_file.write(str(items[0]) + ", " + str(items[1]) + "\n")
+
+        with open("longest_page.txt", "a+") as longest_file:
+            longest_file.write(str(longest) + "\n")
+            longest_file.write("-------------------------------")
+            for items in sorted(pageCount.items(), key=lambda x: x[1], reverse=True):  # sorts by longest page
+                longest_file.write(str(items[0]) + " -> " + str(items[1]) + "\n")
+
+        with open("word_frequency.txt") as word_file:
+            for item in sorted(wordFrequency.items(), key=lambda x: x[1], reverse=True):
+                word_file.write(str(item[0]) + " -> " + str(item[1]) + "\n")
+
+    except Exception as error:
+        print("Ran into exception:" + error)
+
+
+def tokenize(url, soup):    # changed my tokenizer to take soup instead of file name
+    souplower = soup.lower()
+    pattern = r"\b[a-zA-Z0-9]+\b"  # taken from stack overflow to only find alphanumeric characters
+    tokenList = re.findall(pattern, souplower)  # list that will be returned, I think this is slower
+    wordCount = 0   # wordcount for the page so I know how many words were on the page (excluding stopwords)
+    for token in tokenList:
+        if token not in stopwords:
+            if len(token) <= 1:  # ignore single letters
+                continue
+            wordCount += 1
+            if token not in wordFrequency:  # just combinded my wordfrequency from partA into my tokenizer
+                wordFrequency[token] = 1
+            else:
+                wordFrequency[token] += 1
+    pageCount[url] = wordCount
+    if longest["longest_count"] < wordCount:
+        longest["longest_count"] = wordCount
+        longest["longest_page"] = url
 
 
 def extract_next_links(url, resp):  # specifications number 3.2, 3.3
@@ -110,6 +164,7 @@ def extract_next_links(url, resp):  # specifications number 3.2, 3.3
 
 def fix_url(url, base):
     # need this function in order to deal with relative urls talked about on piazza
+    # https://piazza.com/class/kj05cieqyrj620?cid=130
 
     if url.startswith("//"):  # if starts with '//' just add 'https://'
         returnlink = urljoin("https://", url)
