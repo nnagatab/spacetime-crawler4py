@@ -151,7 +151,7 @@ def extract_next_links(url, resp):  # specifications number 3.2, 3.3
         if resp.status == 200 and str(soup) == "":  # making sure website is not empty
             return list()
 
-        for link in soup.findall("a"):  # uses beautifulsoup to find urls
+        for link in soup.find_all("a"):  # uses beautifulsoup to find urls
             link = link.get("href")
             if link is None or link == "":
                 continue
