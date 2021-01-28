@@ -3,98 +3,186 @@ import sys
 import os
 
 from urllib.parse import urlparse, urljoin, urldefrag
-from urllib import robotparser              # using robotparser to read robot.txt
+from urllib import robotparser  # using robotparser to read robot.txt
 from utils import get_urlhash
-from io import *                            # using io for opening with encoding
-from bs4 import BeautifulSoup               # using bs4 to go thru html
-from lxml import etree, html                # using lxml to parse thru html/xml data
-
+from io import *  # using io for opening with encoding
+from bs4 import BeautifulSoup  # using bs4 to go thru html
+from lxml import etree, html  # using lxml to parse thru html/xml data
 
 # storage for deliverable information
-uniqueDomains = set()                      # set for unique sites that have been visited
-robots = dict()                         # dictionary for unique robots
+uniqueDomains = set()  # set for unique sites that have been visited
+robots = dict()  # dictionary for unique robots
 longest = {"longest_count": 0, "longest_page": ''}  # store longest page and the count of words (Question #2)
-pageCount = dict()                      # store pages and their word counts
-domainCount = dict()                    # store domains and subdomain count (question 4)
+pageCount = dict()  # store pages and their word counts
+domainCount = dict()  # store domains and subdomain count (question 4)
 wordFrequency = dict()
+
+# stopwords to ignore
+stopwords = {"about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "aren't", "as",
+             "at", "be", "because", "been", "before", "being", "below", "between", "both", "but", "by", "can't",
+             "cannot", "could", "couldn't", "did", "didn't", "do", "does", "doesn't", "doing", "don't", "down",
+             "during", "each", "few", "for", "from", "further", "had", "hadn't", "has", "hasn't", "have", "haven't",
+             "having", "he", "he'd", "he'll", "he's", "her", "here", "here's", "hers", "herself", "him", "himself",
+             "his", "how", "how's", "i", "i'd", "i'll", "i'm", "i've", "if", "in", "into", "is", "isn't", "it",
+             "it's", "its", "itself", "let's""me", "more", "most", "mustn't", "my", "myself", "no", "nor", "not", "of",
+             "off", "on", "once", "only", "or", "other", "ought", "our", "ours", "ourselves", "out", "over", "own",
+             "same", "shan't", "she", "she'd", "she'll", "she's", "should", "shouldn't", "so", "some", "such", "than",
+             "that", "that's", "the", "their", "theirs", "them", "themselves", "then", "there", "there's", "these",
+             "they", "they'd", "they'll", "they're", "they've", "this", "those", "through", "to", "too", "under",
+             "until", "up", "very", "was", "wasn't", "we", "we'd", "we'll", "we're", "we've", "were", "weren't", "what",
+             "what's", "when", "when's", "where", "where's", "which", "while", "who", "who's", "whom", "why",
+             "why's", "with", "won't", "would", "wouldn't", "you", "you'd", "you'll", "you're", "you've", "your",
+             "yours", "yourself", "yourselves"}
+
+blacklisted = ["https://wics.ics.uci.edu/events/", "https://www.ics.uci.edu/~eppstein/pix/"]
+# these websites have little information and a lot of pages
+
+
+blacklisted_parts = ["/calendar", "share=", "format=xml", "/feed", "/feed/",
+                     ".zip", ".sql", "action=login", ".ppt", "version="]
+
+
+# parts of url that give little information, includes infinite loops like the calendar link
+
+# to-do:
+# 1. add more trap avoidance and error handling
+# 2. implement robot correctly
+# 3. import tokenizer and probably make it taken in html data
+# 4. finish scrapper and calls to other functions
+# 5. make scrapper write to files
+# 6. make print statements for visualization in the terminal
+# 7. finsih is_subdomain function to check for subdomains and the counts
+# 8. make write_to function to write to files with information from data storages
 
 
 def scraper(url, resp):
-    #global longest,pageCount, domainCount, wordFrequency
+    # global longest,pageCount, domainCount, wordFrequency
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
 
 
-def extract_next_links(url, resp):      # specifications number 3.2, 3.3
+def is_subdomain(url, links):
+    found_links = set()
+    for link in links:
+        if is_valid(link):
+            found_links.add(link)
+            parsed = urlparse(url)
+            subdomain = re.match(r"^(www.)?(?P<subdomain>.*)\.ics\.uci\.edu.*$", parsed.netloc.lower())
+            # used https://regex101.com/ to figure out how to match subdomain
+            sub = ""
+            if subdomain is not None:
+                pass
+
+
+def extract_next_links(url, resp):  # specifications number 3.2, 3.3
     next_links = set()
     base_url = urlparse(url)
-    valid = [200, 201, 203]     # list of valid html status codes https://www.w3.org/Protocols/HTTP/HTRESP.html
+    valid = [200, 201, 203]  # list of valid html status codes https://www.w3.org/Protocols/HTTP/HTRESP.html
     if resp.status in valid:
         if url in uniqueDomains:
             return list()
 
         resp_content = resp.raw_response.headers['Content-Type'].split(';')[0]
         if resp_content != "text/html":
-            return list()   # found on stackoverflow on how to read headers
+            return list()  # found on stackoverflow on how to read headers
 
         # uniqueDomains.add(url)
-        soup = BeautifulSoup(resp.raw_response.content, "lxml")     # using lxml to read content
-        if resp.status == 200 and str(soup) == "":      # making sure website is not empty
+        soup = BeautifulSoup(resp.raw_response.content, "lxml")  # using lxml to read content
+        if resp.status == 200 and str(soup) == "":  # making sure website is not empty
             return list()
 
-        for link in soup.findall("a"):      # uses beautifulsoup to find urls
+        for link in soup.findall("a"):  # uses beautifulsoup to find urls
             link = link.get("href")
-            if link is None or link is "":
+            if link is None or link == "":
                 continue
             else:
-                link = link.lower()     # making link lowercase in order to defragment
+                link = link.lower()  # making link lowercase in order to defragment
 
             defragmented_url = urldefrag(link)[0]
-            fixed_link = fix_url(defragmented_url, base_url)    # need to fix relative links
-            if fixed_link not in uniqueDomains:   # makes sure only unique domains are being crawled
+            fixed_link = fix_url(defragmented_url, base_url)  # need to fix relative links
+            if fixed_link not in uniqueDomains:  # makes sure only unique domains are being crawled
                 uniqueDomains.add(fixed_link)
                 next_links.add(fixed_link)
             else:
                 continue
-    return list(next_links)     # returns list of set of links (makes sure links are unique)
+    return list(next_links)  # returns list of set of links (makes sure links are unique)
 
 
-def fix_url(url,base):
+def fix_url(url, base):
     # need this function in order to deal with relative urls talked about on piazza
 
-    if url.startswith("//"):    # if starts with '//' just add 'https://'
+    if url.startswith("//"):  # if starts with '//' just add 'https://'
         returnlink = urljoin("https://", url)
         return returnlink
 
-    elif url.startswith("/"):   # if starts with '/' need to add 'https://' and base url first
+    elif url.startswith("/"):  # if starts with '/' need to add 'https://' and base url first
         returnlink = urljoin("https://" + base.netloc, url)
         return returnlink
 
     return url
 
 
-def is_valid(url):
+def is_valid(url):  # implement more trap avoidance
     try:
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
-        return not re.match(
-            r".*\.(css|js|bmp|gif|jpe?g|ico"
-            + r"|png|tiff?|mid|mp2|mp3|mp4"
-            + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
-            + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
-            + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
-            + r"|epub|dll|cnf|tgz|sha1"
-            + r"|thmx|mso|arff|rtf|jar|csv"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+        for trap in blacklisted:
+            if trap in url:
+                return False
+        for trap in blacklisted_parts:
+            if trap in url:
+                return False
+        valids = set([".ics.uci.edu"
+                         , ".cs.uci.edu"
+                         , ".informatics.uci.edu"
+                         , ".stat.uci.edu"
+                         , "today.uci.edu"
+                      ])
+        for link in valids:
+            if link in parsed.netloc:
+                break
+            else:
+                return False
+
+        if re.match(  # changed return to if statement because want to reach is_robot
+                r".*\.(css|js|bmp|gif|jpe?g|ico"
+                + r"|png|tiff?|mid|mp2|mp3|mp4"
+                + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
+                + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
+                + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
+                + r"|epub|dll|cnf|tgz|sha1"
+                + r"|thmx|mso|arff|rtf|jar|csv"
+                + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower()):
+            return False
+
+        is_robot(url, parsed)  # call to check for robots.txt
+        return True  # since changed return call to if need to return True
 
     except TypeError:
-        print ("TypeError for ", parsed)
+        print("TypeError for ", parsed)
         raise
 
 
-def add_domain(extractedLinks):
-    global domainCount
+def is_robot(url, parsed):
+    # documentation: https://docs.python.org/3/library/urllib.robotparser.html
+    # found most of this code on stackoverflow on how to use robots
+    # not sure if this works fully but i think it does
+    try:
+        robots_url = parsed.scheme + "://" + parsed.netloc.lower() + "/robots.txt"  # checking if there is robots.txt
+        if parsed.netloc.lower() not in robots:
+            robot = robotparser.RobotFileParser()  # starting the robot
+            robot.set_url(robots_url)  # setting robot to the url
+            if robot:
+                robot.read()  # sends the robot to read robots.txt
+                robots[parsed.netloc.lower()] = robot  # adds robot to our robots dictionary
+        if parsed.netloc.lower() in robots:  # check if robot in dictionary
+            return robots[parsed.netloc.lower()].can_fetch("*", url)
+        return True
+    except Exception as e:  # exception handling
+        print("There was no robots.txt")
+        print(e)
+        return True
 
 
 if __name__ == "__main__":
@@ -115,4 +203,3 @@ if __name__ == "__main__":
     pure2 = urldefrag(url3)[0]
     print(fix_url(pure, base))
     print(fix_url(pure2, base))
-
