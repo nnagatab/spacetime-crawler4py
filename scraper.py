@@ -45,14 +45,14 @@ wordFrequency = dict()  # Store Common words (Question #3)
 
 
 # to-do:
-# 1. add more trap avoidance and error handling
-# 2. implement robot correctly
-# 3. import tokenizer and probably make it taken in html data
-# 4. finish scrapper and calls to other functions
-# 5. make scrapper write to files
-# 6. make print statements for visualization in the terminal
-# 7. finsih is_subdomain function to check for subdomains and the counts
-# 8. make write_to function to write to files with information from data storages
+# 1. add more trap avoidance and error handling (sortof done)
+# 2. implement robot correctly (think i did this right)
+# 3. import tokenizer and probably make it taken in html data (taking in soup data)
+# 4. finish scrapper and calls to other functions (yes?)
+# 5. make scrapper write to files (yes)
+# 6. make print statements for visualization in the terminal (yes)
+# 7. finsih is_subdomain function to check for subdomains and the counts (yes)
+# 8. make write_to function to write to files with information from data storages (yes)
 
 
 def scraper(url, resp):
