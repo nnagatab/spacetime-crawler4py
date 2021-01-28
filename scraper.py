@@ -1,5 +1,26 @@
 import re
-from urllib.parse import urlparse
+import sys
+import os
+
+from urllib.parse import urlparse, urljoin, urldefrag
+from urllib import robotparser              # using robotparser to read robot.txt
+from utils import get_urlhash
+from io import *                            # using io for opening with encoding
+from bs4 import BeautifulSoup               # using bs4 to go thru html
+from lxml import etree, html                # using lxml to parse thru html/xml data
+from simhash import Simhash, SimhashIndex   # using simhash to find similarities between pages
+
+
+# storage for deliverable information
+uniqueSite = set()              # set for unique sites that have been visited
+robots = dict()                 # dictionary for unique robots
+SimIndex = SimhashIndex([])     # using simhash to find similarities (found implementation on StackOverflow)
+longest = {"longest_count": 0, "longest_page": ''}  # store longest page and the count of words (Question #2)
+
+
+
+
+
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
