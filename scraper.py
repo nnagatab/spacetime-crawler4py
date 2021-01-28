@@ -103,7 +103,7 @@ def update_files(url):
             for items in sorted(pageCount.items(), key=lambda x: x[1], reverse=True):  # sorts by longest page
                 longest_file.write(str(items[0]) + " -> " + str(items[1]) + "\n")
 
-        with open("word_frequency.txt") as word_file:
+        with open("word_frequency.txt", "a+") as word_file:
             for item in sorted(wordFrequency.items(), key=lambda x: x[1], reverse=True):
                 word_file.write(str(item[0]) + " -> " + str(item[1]) + "\n")
 
