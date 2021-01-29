@@ -125,6 +125,7 @@ def tokenize(url, soup):    # changed my tokenizer to take soup instead of file 
                     continue
                 wordCount += 1
                 if lower in wordFrequency:  # just combinded my wordfrequency from partA into my tokenizer
+                    print("just added +1")
                     wordFrequency[lower] += 1
                 else:
                     wordFrequency[lower] = 1
