@@ -114,11 +114,9 @@ def update_files(url):
 
 def tokenize(url, soup):    # changed my tokenizer to take soup instead of file name
     try:
-        soup = soup.get_text
-        print(soup)
-        print(type(soup))
+        text = soup.get_text()
         pattern = r"\b[a-zA-Z0-9]+\b"  # taken from stack overflow to only find alphanumeric characters
-        tokenList = re.findall(pattern, soup)  # list that will be returned, I think this is slower
+        tokenList = re.findall(pattern, text)  # list that will be returned, I think this is slower
         wordCount = 0   # wordcount for the page so I know how many words were on the page (excluding stopwords)
         for token in tokenList:
             token = token.lower()
