@@ -93,17 +93,17 @@ def update_files(url):
         with open("all_links.txt", "a+") as link_file:  # using a+ to preserve order traversed (question 1)
             link_file.write(url + "\n")
 
-        with open("subdomain_count.txt", "a+") as subdomain_file:  # question 4
+        with open("subdomain_count.txt", "w+") as subdomain_file:  # question 4
             for items in sorted(domainCount.items(), key=lambda x: x[0]):  # sorts by alphabetical order by key
                 subdomain_file.write(str(items[0]) + ", " + str(items[1]) + "\n")
 
-        with open("longest_page.txt", "a+") as longest_file:
+        with open("longest_page.txt", "w+") as longest_file:
             longest_file.write(str(longest) + "\n")
             longest_file.write("-------------------------------" + "\n")
             for items in sorted(pageCount.items(), key=lambda x: x[1], reverse=True):  # sorts by longest page
                 longest_file.write(str(items[0]) + " -> " + str(items[1]) + "\n")
 
-        with open("word_frequency.txt", "a+") as word_file:
+        with open("word_frequency.txt", "w+") as word_file:
             for item in sorted(wordFrequency.items(), key=lambda x: x[1], reverse=True):
                 word_file.write(str(item[0]) + " -> " + str(item[1]) + "\n")
 
