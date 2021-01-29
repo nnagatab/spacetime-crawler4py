@@ -74,7 +74,7 @@ def is_subdomain(url, links):
         if is_valid(link):
             found_links.add(link)
             parsed = urlparse(url)
-            subdomain = re.match(r"^(www.)?(?P<subdomain>.*)\.ics\.uci\.edu.*$", parsed.netloc.lower())
+            subdomain = re.match(r"^(www)?(?P<subdomain>.*)\.ics\.uci\.edu.*$", parsed.netloc.lower())
             # used https://regex101.com/ to figure out how to match subdomain
             sub = ""  # initialize variable incase there is no subdomain
             if subdomain is not None:
@@ -119,15 +119,15 @@ def tokenize(url, soup):    # changed my tokenizer to take soup instead of file 
         tokenList = re.findall(pattern, text)  # list that will be returned, I think this is slower
         wordCount = 0   # wordcount for the page so I know how many words were on the page (excluding stopwords)
         for token in tokenList:
-            token = token.lower()
-            if token not in stopwords:
-                if len(token) <= 1:  # ignore single letters
+            lower = token.lower()
+            if lower not in stopwords:
+                if len(lower) <= 1:  # ignore single letters
                     continue
                 wordCount += 1
-                if token not in wordFrequency:  # just combinded my wordfrequency from partA into my tokenizer
-                    wordFrequency[token] = 1
+                if lower in wordFrequency:  # just combinded my wordfrequency from partA into my tokenizer
+                    wordFrequency[lower] += 1
                 else:
-                    wordFrequency[token] += 1
+                    wordFrequency[lower] = 1
         pageCount[url] = wordCount
         if longest["longest_count"] < wordCount:
             longest["longest_count"] = wordCount
