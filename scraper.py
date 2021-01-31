@@ -74,7 +74,7 @@ def is_subdomain(url, links):
         if is_valid(link):
             found_links.add(link)
             parsed = urlparse(url)
-            subdomain = re.match(r"^(www)?(?P<subdomain>.*)\.ics\.uci\.edu.*$", parsed.netloc.lower())
+            subdomain = re.match(r"^(https?)?(://www)?(?P<subdomain>.*)(\.ics\.uci\.edu.*)$", parsed.netloc.lower())
             # used https://regex101.com/ to figure out how to match subdomain
             sub = ""  # initialize variable incase there is no subdomain
             if subdomain is not None:
@@ -112,6 +112,7 @@ def update_files(url):
                 else:
                     break
 
+
     except Exception as e:
         print("Ran into error updating files\n")
         print(str(e) + "\n")
@@ -130,10 +131,8 @@ def tokenize(url, soup):    # changed my tokenizer to take soup instead of file 
                     continue
                 wordCount += 1
                 if lower in wordFrequency:  # just combined my wordfrequency from partA into my tokenizer
-                    print("adding 1 to wordFrequency")
                     wordFrequency[lower] += 1
                 else:
-                    print("setting word to 1 wordFrequency")
                     wordFrequency[lower] = 1
         pageCount[url] = wordCount
         if longest["longest_count"] < wordCount:
