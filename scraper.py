@@ -104,8 +104,13 @@ def update_files(url):
                 longest_file.write(str(items[0]) + " -> " + str(items[1]) + "\n")
 
         with open("word_frequency.txt", "w+") as word_file:
+            count = 0
             for item in sorted(wordFrequency.items(), key=lambda x: x[1], reverse=True):
                 word_file.write(str(item[0]) + " -> " + str(item[1]) + "\n")
+                if count != 50:
+                    count += 1
+                else:
+                    break
 
     except Exception as e:
         print("Ran into error updating files\n")
@@ -124,9 +129,11 @@ def tokenize(url, soup):    # changed my tokenizer to take soup instead of file 
                 if len(lower) <= 1:  # ignore single letters
                     continue
                 wordCount += 1
-                if lower in wordFrequency:  # just combinded my wordfrequency from partA into my tokenizer
+                if lower in wordFrequency:  # just combined my wordfrequency from partA into my tokenizer
+                    print("adding 1 to wordFrequency")
                     wordFrequency[lower] += 1
                 else:
+                    print("setting word to 1 wordFrequency")
                     wordFrequency[lower] = 1
         pageCount[url] = wordCount
         if longest["longest_count"] < wordCount:
@@ -238,7 +245,7 @@ def is_robot(url, parsed):
             robot = robotparser.RobotFileParser()  # starting the robot
             robot.set_url(robots_url)  # setting robot to the url
             if robot:
-                robot.read()  # sends the robot to read robots.txt
+                robot.read()  # sends the robot to read robots.txt #belive this runs the robots.txt
                 robots[parsed.netloc.lower()] = robot  # adds robot to our robots dictionary
         if parsed.netloc.lower() in robots:  # check if robot in dictionary
             return robots[parsed.netloc.lower()].can_fetch("*", url)
