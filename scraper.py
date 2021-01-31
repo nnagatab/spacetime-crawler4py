@@ -26,8 +26,10 @@ blacklisted = ["https://wics.ics.uci.edu/events/", "https://www.ics.uci.edu/~epp
 # these websites have little information and a lot of pages
 
 
-blacklisted_parts = ["/calendar", "share=", "format=xml", "/feed", "/feed/",
-                     ".zip", ".sql", "action=login", ".ppt", "version="]
+blacklisted_parts = ["/calendar", "replytocom=", "wp-json", "share=", "format=xml", "/feed", "/feed/",
+                     ".pdf", ".zip", ".sql", "action=login", "?ical=", ".ppt", "version=", "action=diff", "do=diff",
+                     "difftype=sidebyside"]
+
 # parts of url that give little information, includes infinite loops like the calendar link
 
 
@@ -118,12 +120,12 @@ def update_files(url):
         print(str(e) + "\n")
 
 
-def tokenize(url, soup):    # changed my tokenizer to take soup instead of file name
+def tokenize(url, soup):  # changed my tokenizer to take soup instead of file name
     try:
         text = soup.get_text()
         pattern = r"\b[a-zA-Z0-9]+\b"  # taken from stack overflow to only find alphanumeric characters
         tokenList = re.findall(pattern, text)  # list that will be returned, I think this is slower
-        wordCount = 0   # wordcount for the page so I know how many words were on the page (excluding stopwords)
+        wordCount = 0  # wordcount for the page so I know how many words were on the page (excluding stopwords)
         for token in tokenList:
             lower = token.lower()
             if lower not in stopwords:
