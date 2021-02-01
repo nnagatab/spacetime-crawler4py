@@ -27,7 +27,7 @@ blacklisted = ["https://wics.ics.uci.edu/events/", "https://www.ics.uci.edu/~epp
 
 
 blacklisted_parts = ["/calendar", "replytocom=", "wp-json", "share=", "format=xml", "/feed", "/feed/",
-                     ".pdf", ".zip", ".sql", "action=login", "?ical=", ".ppt", "version=", "action=diff", "do=diff",
+                     ".sql", "action=login", "?ical=", "version=", "action=diff", "do=diff",
                      "difftype=sidebyside"]
 
 # parts of url that give little information, includes infinite loops like the calendar link
